@@ -15,14 +15,16 @@
     <div class="w-full mx-auto pb-2 border-1 border-[#616161] border-b">
         <nav class="border-gray-200 pt-1 flex">
             <div class="flex flex-wrap ml-2 w-[5%]">
-                <a href="#" class="flex flex-wrap mr-5">
-                    <svg class="h-10 mr-3" width="51" height="70" viewBox="0 0 51 70" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0)"><path d="M1 53H27.9022C40.6587 53 51 42.7025 51 30H24.0978C11.3412 30 1 40.2975 1 53Z" fill="#76A9FA"></path><path d="M-0.876544 32.1644L-0.876544 66.411C11.9849 66.411 22.4111 55.9847 22.4111 43.1233L22.4111 8.87674C10.1196 8.98051 0.518714 19.5571 -0.876544 32.1644Z" fill="#A4CAFE"></path><path d="M50 5H23.0978C10.3413 5 0 15.2975 0 28H26.9022C39.6588 28 50 17.7025 50 5Z" fill="#1C64F2"></path></g><defs><clipPath id="clip0"><rect width="51" height="70" fill="white"></rect></clipPath></defs></svg>
+                <a href="#" class="flex flex-wrap mr-5 text-white">
+                    <svg class="h-10 mr-3" xmlns="http://www.w3.org/2000/svg" fill="" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                    </svg>                      
                     <span class="self-center w-full text-lg font-semibold whitespace-nowrap">Akasa</span>
                 </a>
             </div>
             <div class="container dark:text-white ml-5 flex flex-wrap items-center justify-between">
                 <div class="w-full flex">
-                    <input class="bg-transparent p-1 border-1 hover:border-white" type="text" placeholder="sin_nombre">
+                    <input class="bg-transparent p-1 border-1 hover:border-white" type="text" id="nombreFile" placeholder="{{notebook.filename}}">
                 </div>
                 <button data-collapse-toggle="mobile-menu" type="button" class="md:hidden ml-3 text-gray-400 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-lg inline-flex items-center justify-center" aria-controls="mobile-menu-2" aria-expanded="false">
                     <span class="sr-only">Open main menu</span>
@@ -46,13 +48,20 @@
                             <div id="ddInsertar" class="hidden bg-white dark:bg-[#383838] text-base z-10 list-none divide-y divide-gray-100 rounded shadow my-4 w-44">
                                 <ul class="py-1" aria-labelledby="dropdownLargeButton">
                                     <li>
-                                        <p class="hover:cursor-pointer text-sm hover:bg-[#616161] text-gray-700 dark:text-white block px-4 py-2" onclick="addCelda()">Insertar celda</p>
+                                        <p class="hover:cursor-pointer text-sm hover:bg-[#616161] text-gray-700 dark:text-white block px-4 py-2" onclick="notebook.addCelda()">Insertar celda</p>
                                     </li>
                                 </ul>
                             </div>
                         </li>
                         <li class="p-1 rounded-lg hover:bg-gray-50 hover:bg-opacity-[10%]">
-                            <p class="text-gray-700 dark:text-white hover:cursor-pointer hover:bg-gray-50 border-b border-gray-100 md:hover:bg-transparent md:border-0 block px-2 py-2 md:p-0">Pricing</p>
+                            <button id="dropdownNavbarLink" data-dropdown-toggle="ddEntorno" class="text-gray-700 dark:text-white hover:bg-gray-50 border-b border-gray-100 md:hover:bg-transparent md:border-0 pl-3 pr-4 py-2 md:p-0 font-medium flex items-center justify-between w-full md:w-auto">Entorno de ejecuci&oacute;n</button>
+                            <div id="ddEntorno" class="hidden bg-white dark:bg-[#383838] text-base z-10 list-none divide-y divide-gray-100 rounded shadow my-4 w-44">
+                                <ul class="py-1" aria-labelledby="dropdownLargeButton">
+                                    <li>
+                                        <p class="hover:cursor-pointer text-sm hover:bg-[#616161] text-gray-700 dark:text-white block px-4 py-2" onclick="notebook.conectarEntorno()">Conectar/Reiniciar entorno</p>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
                     </ul>
                 </div>
@@ -62,14 +71,35 @@
 	<div id="celdas" class="flex-grow flex flex-wrap p-4">
 		<div class="w-full mb-2">
             <div class="editor" id="ed1"></div>
+            <div class="div_result flex w-full h-10 hidden border border-gray-200">
+                <div class="w-[5%] h-auto">
+                    <div class="loader_icon flex-col gap-4 w-full flex items-center justify-start">
+                        <div class="w-8 h-8 border-8 text-blue-400 text-4xl animate-spin border-gray-300 flex items-center justify-start border-t-blue-400 rounded-full">
+                        </div>
+                    </div>
+                </div>
+                <div class="block w-[95%] h-auto result">
+                </div>
+            </div>
         </div>
 	</div>
 </body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.5/mousetrap.min.js" integrity="sha512-+Jg3Ynmj9hse704K48H6rBBI3jdNBjReRGBCxUWFfOz3yVurnJFWtAWssDAsGtzWYw89xFWPxShuj2T6E9EOpg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    let __PATH__ = "{{notebook.path or null}}";
+    let __Filename__ = "{{notebook.filename}}";
+
+    function generarHash(){
+        let array = new Uint8Array(16);
+        crypto.getRandomValues(array);
+        return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+</script>
 <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.16.0/src-min-noconflict/ace.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.5/plugins/global-bind/mousetrap-global-bind.js" integrity="sha512-td7ejQXjm5aHj+zDFZl1TfLIRUak9P/1Y4upPfvkjQA6a59aPEZTQFadQPwpH0AdCsoCqsrjhrhxIaRFOnQC5w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="{{url_for('static', filename='Celda.js')}}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.5/mousetrap.min.js" integrity="sha512-+Jg3Ynmj9hse704K48H6rBBI3jdNBjReRGBCxUWFfOz3yVurnJFWtAWssDAsGtzWYw89xFWPxShuj2T6E9EOpg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.5/plugins/global-bind/mousetrap-global-bind.min.js" integrity="sha512-X8ySaxOQUCQkVxiOp1t87ktlH/Crs9YoNM0ruSctTdWA0Xp83CMzfnR1zvMQgc+OYFzBOakHw9NTkAe2bpAUDg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{{url_for('static', filename='NoteBook.js')}}"></script>
 <script src="{{url_for('static', filename='index.js')}}"></script>
+<script src="{{url_for('static', filename='AutoGuardado.js')}}"></script>
 <script src="{{url_for('static', filename='hotkeys.js')}}"></script>
 <script src="https://unpkg.com/@themesberg/flowbite@1.1.1/dist/flowbite.bundle.js"></script>
 </html>

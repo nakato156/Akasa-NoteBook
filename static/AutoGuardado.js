@@ -1,30 +1,33 @@
-function AutoGuardado(editors, tipo) {
+function AutoGuardado(editors) {
     fetch(`/save`, {
         method: 'POST',
         headers:{
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({tipo, data:parseData(editors)})
+        body: JSON.stringify({data:parseData(editors)})
     })
 }
 
 function updateCelda(celda){
     const id = celda.id
-    const content = celda.editor.getValue();
+    const contenido = celda.editor.getValue();
     
-    fetch(`/celda/update?id=${id}`,{
+    fetch(`/celda/update`,{
         method: 'POST',
-        body: JSON.stringify({content})
+        headers:{
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({id, contenido})
     })
 }
 
-function createCelda(celda, prevId){
-    const id = celda.id
-    const content = celda.editor.getValue()
-
+function createCelda(id, prevId){
     fetch('/celda/create',{
         method: 'post',
-        body: JSON.stringify({id, content, prevId})
+        headers:{
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({id, prevId})
     })
 }
 
